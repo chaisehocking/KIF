@@ -521,29 +521,30 @@ typedef CGPoint KIFDisplacement;
 
 + (id)stepToTapRowInTableViewWithAccessibilityLabel:(NSString*)tableViewLabel atIndexPath:(NSIndexPath *)indexPath
 {
-    NSString *description = [NSString stringWithFormat:@"Step to tap row %d in tableView with label %@", [indexPath row], tableViewLabel];
+    NSString *description = [NSString stringWithFormat:@"Step to tap %@ in tableView with label %@", [indexPath description], tableViewLabel];
     return [KIFTestStep stepWithDescription:description executionBlock:^(KIFTestStep *step, NSError **error) {
         UIAccessibilityElement *element = [[UIApplication sharedApplication] accessibilityElementWithLabel:tableViewLabel];
-        KIFTestCondition(element, error, @"View with label %@ not found", tableViewLabel);
+		
+        KIFTestWaitCondition(element, error, @"View with label %@ not found", tableViewLabel);
         UITableView *tableView = (UITableView*)[UIAccessibilityElement viewContainingAccessibilityElement:element];
-        
+		
         KIFTestCondition([tableView isKindOfClass:[UITableView class]], error, @"Specified view is not a UITableView");
-        
-        KIFTestCondition(tableView, error, @"Table view with label %@ not found", tableViewLabel);
-        
+        KIFTestCondition(tableView, error, @"Table view with label '%@' not found", tableViewLabel);
+		
         UITableViewCell *cell = [tableView cellForRowAtIndexPath:indexPath];
-        if (!cell) {
-            KIFTestCondition([indexPath section] < [tableView numberOfSections], error, @"Section %d is not found in '%@' table view", [indexPath section], tableViewLabel);
-            KIFTestCondition([indexPath row] < [tableView numberOfRowsInSection:[indexPath section]], error, @"Row %d is not found in section %d of '%@' table view", [indexPath row], [indexPath section], tableViewLabel);
+        if (!cell &&
+            [indexPath section] < [tableView numberOfSections] &&
+            [indexPath row] < [tableView numberOfRowsInSection:[indexPath section]]) {
+            
             [tableView scrollToRowAtIndexPath:indexPath atScrollPosition:UITableViewScrollPositionMiddle animated:YES];
             [[NSRunLoop currentRunLoop] runUntilDate:[NSDate dateWithTimeIntervalSinceNow:0.25]];
             cell = [tableView cellForRowAtIndexPath:indexPath];
         }
-        KIFTestCondition(cell, error, @"Table view cell at index path %@ not found", indexPath);
-
-        CGRect cellFrame = [cell.contentView convertRect:[cell.contentView frame] toView:tableView];
-        [tableView tapAtPoint:CGPointCenteredInRect(cellFrame)];
         
+		KIFTestWaitCondition(cell, error, @"Cell at indexPath '%@' not found", [indexPath description]);
+		
+        [cell tapAtPoint:[cell tappablePointInRect:cell.bounds]];
+		
         return KIFTestStepResultSuccess;
     }];
 }
