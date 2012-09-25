@@ -81,9 +81,9 @@ typedef struct __GSEvent * GSEventRef;
 - (UIAccessibilityElement *)accessibilityElementWithLabel:(NSString *)label accessibilityValue:(NSString *)value traits:(UIAccessibilityTraits)traits;
 {
     return [self accessibilityElementMatchingBlock:^(UIAccessibilityElement *element) {
-        BOOL labelsMatch = [element.accessibilityLabel isEqual:label];
+        BOOL labelsMatch = [element.accessibilityLabel isEqualToString:label];
         BOOL traitsMatch = ((element.accessibilityTraits) & traits) == traits;
-        BOOL valuesMatch = !value || [value isEqual:element.accessibilityValue];
+        BOOL valuesMatch = !value || [value isEqualToString:element.accessibilityValue];
 
         return (BOOL)(labelsMatch && traitsMatch && valuesMatch);
     }];
